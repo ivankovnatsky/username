@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"crypto/rand"
+	_ "embed"
 	"fmt"
 	"math/big"
 	"os"
+	"strings"
 )
 
 const (
@@ -15,16 +17,11 @@ const (
 
 var words []string
 
-// https://github.com/dwyl/english-words
-func init() {
-	file, err := os.Open("words_alpha.txt")
-	if err != nil {
-		fmt.Println("Error opening file:", err)
-		os.Exit(1)
-	}
-	defer file.Close()
+//go:embed words_alpha.txt
+var content string
 
-	scanner := bufio.NewScanner(file)
+func init() {
+	scanner := bufio.NewScanner(strings.NewReader(content))
 	for scanner.Scan() {
 		word := scanner.Text()
 		if len(word) >= MinWordLength && len(word) <= MaxWordLength {
@@ -33,7 +30,7 @@ func init() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
+		fmt.Println("Error reading embedded file:", err)
 		os.Exit(1)
 	}
 
