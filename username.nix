@@ -10,7 +10,7 @@ buildGoModule rec {
     owner = "ivankovnatsky";
     repo = "username";
     rev = "v${version}";
-    hash = "sha256-Yno1wleUg8mlazhwzF1J9G8sRN/eKqXYBQWG6g5UhGk=";
+    hash = "sha256-zhW/7Wo9NTH6VTY0XumlSl0W762yznsybvGtZ2hJfOg=";
   };
 
   vendorHash = null;
