@@ -64,7 +64,30 @@ func GenerateUserName() (string, error) {
 }
 
 func main() {
-	username, err := GenerateUserName()
+	local := false
+	for _, arg := range os.Args[1:] {
+		switch arg {
+		case "--local", "-local", "-l":
+			local = true
+		case "--help", "-help", "-h":
+			fmt.Println("Usage: username [options]")
+			fmt.Println()
+			fmt.Println("Generate random lowercase usernames.")
+			fmt.Println()
+			fmt.Println("Options:")
+			fmt.Println("  -l, -local, --local  Generate a single-word username")
+			fmt.Println("  -h, -help, --help    Show this help message")
+			return
+		}
+	}
+
+	var username string
+	var err error
+	if local {
+		username, err = pickRandomWord()
+	} else {
+		username, err = GenerateUserName()
+	}
 	if err != nil {
 		fmt.Println("Error generating username:", err)
 		return
