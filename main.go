@@ -24,14 +24,22 @@ var dictPaths = []string{
 }
 
 func init() {
+	var err error
+	words, err = loadWords()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+func loadWords() ([]string, error) {
 	var file *os.File
 	var err error
 
 	if envPath := os.Getenv("WORD_FILE"); envPath != "" {
 		file, err = os.Open(envPath)
 		if err != nil {
-			fmt.Printf("Error: cannot open WORD_FILE=%s: %v\n", envPath, err)
-			os.Exit(1)
+			return nil, fmt.Errorf("error: cannot open WORD_FILE=%s: %v", envPath, err)
 		}
 	} else {
 		for _, path := range dictPaths {
@@ -42,29 +50,32 @@ func init() {
 		}
 	}
 	if file == nil {
-		fmt.Println("Error: no system dictionary found. Tried:", strings.Join(dictPaths, ", "))
-		os.Exit(1)
+		return nil, fmt.Errorf("error: no system dictionary found. Tried: %s", strings.Join(dictPaths, ", "))
 	}
 	defer file.Close()
 
+	return parseWords(file)
+}
+
+func parseWords(file *os.File) ([]string, error) {
+	var result []string
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		word := strings.ToLower(scanner.Text())
-		// Only pure lowercase alpha words of the right length.
 		if len(word) >= MinWordLength && len(word) <= MaxWordLength && isAlpha(word) {
-			words = append(words, word)
+			result = append(result, word)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading dictionary:", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("error reading dictionary: %v", err)
 	}
 
-	if len(words) < 2 {
-		fmt.Println("Not enough words in the dictionary.")
-		os.Exit(1)
+	if len(result) < 2 {
+		return nil, fmt.Errorf("not enough words in the dictionary")
 	}
+
+	return result, nil
 }
 
 func isAlpha(s string) bool {
