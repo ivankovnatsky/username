@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"crypto/rand"
+	_ "embed"
 	"fmt"
 	"math/big"
 	"os"
@@ -16,66 +17,28 @@ const (
 
 var words []string
 
-// System dictionary paths, tried in order.
-// Override with WORD_FILE env var (useful for NixOS).
-var dictPaths = []string{
-	"/usr/share/dict/words",
-	"/usr/share/dict/american-english",
-}
+//go:embed words_alpha.txt
+var content string
 
 func init() {
-	var err error
-	words, err = loadWords()
-	if err != nil {
-		fmt.Println(err)
+	words = parseWords(content)
+
+	if len(words) < 2 {
+		fmt.Println("Not enough words of minimum length in the list. Please check your word list.")
 		os.Exit(1)
 	}
 }
 
-func loadWords() ([]string, error) {
-	var file *os.File
-	var err error
-
-	if envPath := os.Getenv("WORD_FILE"); envPath != "" {
-		file, err = os.Open(envPath)
-		if err != nil {
-			return nil, fmt.Errorf("error: cannot open WORD_FILE=%s: %v", envPath, err)
-		}
-	} else {
-		for _, path := range dictPaths {
-			file, err = os.Open(path)
-			if err == nil {
-				break
-			}
-		}
-	}
-	if file == nil {
-		return nil, fmt.Errorf("error: no system dictionary found. Tried: %s", strings.Join(dictPaths, ", "))
-	}
-	defer file.Close()
-
-	return parseWords(file)
-}
-
-func parseWords(file *os.File) ([]string, error) {
+func parseWords(input string) []string {
 	var result []string
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(strings.NewReader(input))
 	for scanner.Scan() {
 		word := strings.ToLower(scanner.Text())
 		if len(word) >= MinWordLength && len(word) <= MaxWordLength && isAlpha(word) {
 			result = append(result, word)
 		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading dictionary: %v", err)
-	}
-
-	if len(result) < 2 {
-		return nil, fmt.Errorf("not enough words in the dictionary")
-	}
-
-	return result, nil
+	return result
 }
 
 func isAlpha(s string) bool {

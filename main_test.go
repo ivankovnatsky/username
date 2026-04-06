@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"testing"
 )
 
@@ -26,20 +25,8 @@ func TestIsAlpha(t *testing.T) {
 }
 
 func TestParseWords(t *testing.T) {
-	file, err := os.Open("testdata/words.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer file.Close()
-
-	result, err := parseWords(file)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(result) == 0 {
-		t.Fatal("expected words, got none")
-	}
+	input := "ab\napple\nbanana\ncherry\nfig\nextraordinary\n"
+	result := parseWords(input)
 
 	for _, w := range result {
 		if len(w) < MinWordLength || len(w) > MaxWordLength {
@@ -49,22 +36,27 @@ func TestParseWords(t *testing.T) {
 			t.Errorf("word %q is not purely alphabetic", w)
 		}
 	}
+
+	// "ab" too short, "fig" too short, "extraordinary" too long
+	if len(result) != 3 {
+		t.Errorf("expected 3 words, got %d: %v", len(result), result)
+	}
 }
 
-func TestParseWordsRejectsTooFew(t *testing.T) {
-	file, err := os.CreateTemp("", "words-*.txt")
-	if err != nil {
-		t.Fatal(err)
+func TestParseWordsFiltersNonAlpha(t *testing.T) {
+	input := "hello\nworld123\ngood-bye\ntest\n"
+	result := parseWords(input)
+
+	for _, w := range result {
+		if !isAlpha(w) {
+			t.Errorf("word %q should have been filtered out", w)
+		}
 	}
-	defer os.Remove(file.Name())
+}
 
-	// Write only one valid word (need at least 2).
-	file.WriteString("solo\n")
-	file.Seek(0, 0)
-
-	_, err = parseWords(file)
-	if err == nil {
-		t.Error("expected error for dictionary with fewer than 2 words")
+func TestEmbeddedWordList(t *testing.T) {
+	if len(words) < 1000 {
+		t.Errorf("expected at least 1000 filtered words, got %d", len(words))
 	}
 }
 
@@ -118,7 +110,6 @@ func TestGenerateUserNameUniqueness(t *testing.T) {
 		seen[username] = true
 	}
 
-	// With a reasonable word list, duplicates in 100 runs should be very rare.
 	if dupes > 5 {
 		t.Errorf("too many duplicate usernames: %d out of %d", dupes, n)
 	}

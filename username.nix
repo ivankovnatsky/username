@@ -1,7 +1,5 @@
 { buildGoModule
 , fetchFromGitHub
-, scowl
-, makeWrapper
 }:
 
 buildGoModule rec {
@@ -16,11 +14,4 @@ buildGoModule rec {
   };
 
   vendorHash = null;
-
-  nativeBuildInputs = [ makeWrapper ];
-
-  postInstall = ''
-    wrapProgram $out/bin/username \
-      --set WORD_FILE ${scowl}/share/dict/wamerican.50
-  '';
 }
