@@ -21,23 +21,33 @@ var words []string
 var content string
 
 func init() {
-	scanner := bufio.NewScanner(strings.NewReader(content))
-	for scanner.Scan() {
-		word := scanner.Text()
-		if len(word) >= MinWordLength && len(word) <= MaxWordLength {
-			words = append(words, word)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading embedded file:", err)
-		os.Exit(1)
-	}
+	words = parseWords(content)
 
 	if len(words) < 2 {
 		fmt.Println("Not enough words of minimum length in the list. Please check your word list.")
 		os.Exit(1)
 	}
+}
+
+func parseWords(input string) []string {
+	var result []string
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	for scanner.Scan() {
+		word := strings.ToLower(scanner.Text())
+		if len(word) >= MinWordLength && len(word) <= MaxWordLength && isAlpha(word) {
+			result = append(result, word)
+		}
+	}
+	return result
+}
+
+func isAlpha(s string) bool {
+	for _, c := range s {
+		if c < 'a' || c > 'z' {
+			return false
+		}
+	}
+	return true
 }
 
 func pickRandomWord() (string, error) {
