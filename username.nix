@@ -1,17 +1,26 @@
 { buildGoModule
 , fetchFromGitHub
+, scowl
+, makeWrapper
 }:
 
 buildGoModule rec {
   pname = "username";
-  version = "0.0.6";
+  version = "0.0.7";
 
   src = fetchFromGitHub {
     owner = "ivankovnatsky";
     repo = "username";
     rev = "v${version}";
-    hash = "sha256-zhW/7Wo9NTH6VTY0XumlSl0W762yznsybvGtZ2hJfOg=";
+    hash = "";
   };
 
   vendorHash = null;
+
+  nativeBuildInputs = [ makeWrapper ];
+
+  postInstall = ''
+    wrapProgram $out/bin/username \
+      --set WORD_FILE ${scowl}/share/dict/wamerican.50
+  '';
 }

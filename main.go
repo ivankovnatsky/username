@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"crypto/rand"
-	_ "embed"
 	"fmt"
 	"math/big"
 	"os"
@@ -17,27 +16,64 @@ const (
 
 var words []string
 
-//go:embed words_alpha.txt
-var content string
+// System dictionary paths, tried in order.
+// Override with WORD_FILE env var (useful for NixOS).
+var dictPaths = []string{
+	"/usr/share/dict/words",
+	"/usr/share/dict/american-english",
+}
 
 func init() {
-	scanner := bufio.NewScanner(strings.NewReader(content))
+	var file *os.File
+	var err error
+
+	if envPath := os.Getenv("WORD_FILE"); envPath != "" {
+		file, err = os.Open(envPath)
+		if err != nil {
+			fmt.Printf("Error: cannot open WORD_FILE=%s: %v\n", envPath, err)
+			os.Exit(1)
+		}
+	} else {
+		for _, path := range dictPaths {
+			file, err = os.Open(path)
+			if err == nil {
+				break
+			}
+		}
+	}
+	if file == nil {
+		fmt.Println("Error: no system dictionary found. Tried:", strings.Join(dictPaths, ", "))
+		os.Exit(1)
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		word := scanner.Text()
-		if len(word) >= MinWordLength && len(word) <= MaxWordLength {
+		word := strings.ToLower(scanner.Text())
+		// Only pure lowercase alpha words of the right length.
+		if len(word) >= MinWordLength && len(word) <= MaxWordLength && isAlpha(word) {
 			words = append(words, word)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading embedded file:", err)
+		fmt.Println("Error reading dictionary:", err)
 		os.Exit(1)
 	}
 
 	if len(words) < 2 {
-		fmt.Println("Not enough words of minimum length in the list. Please check your word list.")
+		fmt.Println("Not enough words in the dictionary.")
 		os.Exit(1)
 	}
+}
+
+func isAlpha(s string) bool {
+	for _, c := range s {
+		if c < 'a' || c > 'z' {
+			return false
+		}
+	}
+	return true
 }
 
 func pickRandomWord() (string, error) {
