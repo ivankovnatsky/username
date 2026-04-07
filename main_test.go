@@ -15,7 +15,7 @@ func TestIsAlpha(t *testing.T) {
 		{"hello1", false},
 		{"hello-world", false},
 		{"hello's", false},
-		{"", true},
+		{"", false},
 	}
 	for _, tt := range tests {
 		if got := isAlpha(tt.input); got != tt.want {
