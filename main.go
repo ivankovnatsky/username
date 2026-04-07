@@ -38,16 +38,21 @@ func parseWords(input string) []string {
 			result = append(result, word)
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		fmt.Println("Error reading word list:", err)
+		os.Exit(1)
+	}
 	return result
 }
 
 func isAlpha(s string) bool {
-	for _, c := range s {
+	for i := 0; i < len(s); i++ {
+		c := s[i]
 		if c < 'a' || c > 'z' {
 			return false
 		}
 	}
-	return true
+	return len(s) > 0
 }
 
 func pickRandomWord() (string, error) {
