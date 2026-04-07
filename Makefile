@@ -1,7 +1,7 @@
 default:
 	go build -o username .
 
-nix-update:
+update-nix-config:
 	@set -euo pipefail; \
 	branch=$$(git rev-parse --abbrev-ref HEAD); \
 	if [ "$$branch" = "HEAD" ]; then \
