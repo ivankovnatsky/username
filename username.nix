@@ -1,17 +1,11 @@
 { buildGoModule
-, fetchFromGitHub
 }:
 
-buildGoModule rec {
+buildGoModule {
   pname = "username";
-  version = "0.0.6";
+  version = "0.0.7";
 
-  src = fetchFromGitHub {
-    owner = "ivankovnatsky";
-    repo = "username";
-    rev = "v${version}";
-    hash = "sha256-zhW/7Wo9NTH6VTY0XumlSl0W762yznsybvGtZ2hJfOg=";
-  };
+  src = ./.;
 
   vendorHash = null;
 }
